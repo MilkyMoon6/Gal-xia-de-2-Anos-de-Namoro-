@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Nosso Universo - 2 Anos ❤️</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
+    #galaxy-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: none; z-index: 1; transition: opacity 0.8s; opacity: 0; }
+    
+    /* Intro e Loading */
+    #intro { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; }
+    #intro h1 { font-size: 26px; color: #ffccff; text-shadow: 0 0 15px #aa00ff; margin-bottom: 15px; }
+    #intro p { font-size: 16px; color: #dccfff; margin-bottom: 35px; }
+    
+    #loader-container { width: 200px; height: 4px; background: rgba(170, 0, 255, 0.1); border-radius: 10px; margin-bottom: 30px; overflow: hidden; display: block; border: 1px solid rgba(170, 0, 255, 0.3); }
+    #loader-bar { width: 0%; height: 100%; background: #aa00ff; box-shadow: 0 0 15px #aa00ff; transition: width 0.4s ease; }
+
+    #startBtn { padding: 16px 40px; font-size: 18px; color: #fff; background: rgba(170, 0, 255, 0.3); border: 2px solid #aa00ff; border-radius: 40px; box-shadow: 0 0 20px #aa00ff; cursor: pointer; transition: transform 0.1s, opacity 0.5s; display: none; opacity: 0; }
+    #startBtn:active { transform: scale(0.85); }
+
+    /* UI do Universo */
+    #musicPlayer { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); display: none; align-items: center; gap: 10px; background: rgba(30, 0, 60, 0.7); padding: 10px 20px; border-radius: 30px; border: 1px solid #aa00ff; z-index: 100; color: #fff; backdrop-filter: blur(5px); }
+    #musicPlayer button { background: none; border: 1px solid #fff; color: #fff; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+
+    .nav-arrow { position: fixed; z-index: 101; cursor: pointer; color: #aa00ff; text-shadow: 0 0 10px #aa00ff; transition: opacity 0.5s; display: none; }
+    #nextPageBtn { bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; animation: bounce 2s infinite; }
+    #exitGalaxyBtn { top: 20px; left: 20px; font-size: 30px; }
+    #backToGalaxyBtn { top: 20px; left: 20px; font-size: 30px; }
+
+    @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateX(-50%) translateY(0);} 40% {transform: translateX(-50%) translateY(-10px);} 60% {transform: translateX(-50%) translateY(-5px);} }
+
+    #messagePage { position: fixed; inset: 0; display: none; background: #000; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; padding: 30px; opacity: 0; transition: opacity 0.8s ease; }
+    .neon-border { border: 3px solid #aa00ff; padding: 25px; border-radius: 20px; box-shadow: 0 0 15px #aa00ff, inset 0 0 15px #aa00ff; max-width: 85%; text-align: center; background: rgba(20, 0, 40, 0.8); }
+    .neon-border h2 { color: #fff; text-shadow: 0 0 10px #aa00ff; margin-bottom: 20px; font-size: 22px; }
+    .neon-border p { color: #eee; line-height: 1.6; font-size: 17px; margin-bottom: 15px; }
+    .kaomoji { color: #ffccff; font-size: 20px; display: block; margin-top: 15px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+</head>
+<body>
+
+<div id="intro">
+  <h1>Feliz Aniversário de 2 Anos de Namoro! ❤️</h1>
+  <p id="status-text">Sintonizando nosso universo...</p>
+  <div id="loader-container">
+    <div id="loader-bar"></div>
+  </div>
+  <button id="startBtn">Abrir Nosso Universo ✨</button>
+</div>
+
+<canvas id="galaxy-canvas"></canvas>
+
+<div id="exitGalaxyBtn" class="nav-arrow">⟨</div>
+
+<div id="nextPageBtn" class="nav-arrow">▼</div>
+
+<div id="messagePage">
+  <div id="backToGalaxyBtn" class="nav-arrow" style="display: block;">⟨</div>
+  <div class="neon-border">
+    <h2>Feliz aniversário de namoro! 💜</h2>
+    <p>Obrigada por tudo até aqui, saiba que eu te amo demais.</p>
+    <p>Sou grata por todos esses momentos que eu estive contigo até hoje e sou sortuda demais por te ter, meu amor.</p>
+    <p>E obrigada por tudo e por esses dois anos incríveis que eu estive ao seu lado, fiz essa galáxia, ou pelo menos tentei...</p>
+    <span class="kaomoji"> (づ￣ ³￣)づ  ✨  (◕‿◕✿) </span>
+  </div>
+</div>
+
+<div id="musicPlayer">
+  <button id="playBtn">⏸</button>
+  <span style="font-size: 13px; letter-spacing: 1px;">musiquinha...</span>
+  <audio id="audio" loop><source src="Terraria.mp3" type="audio/mpeg"></audio>
+</div>
+
+<script>
+(function() {
+    // --- CLASSE DO COMETA COM CALDA MELHORADA ---
+    class NeonComet {
+        constructor(scene) {
+            this.scene = scene;
+            this.colors = [0xffffff, 0xffb3ff, 0xaa00ff, 0x00f2ff];
+            this.mesh = new THREE.Group();
+            this.trailLength = 30; // Quantidade de segmentos da calda
+            this.history = []; // Histórico de posições para a calda
+            this.initComet();
+            this.reset();
+            this.scene.add(this.mesh);
+        }
+
+        initComet() {
+            const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            
+            // Cabeça Redonda (Núcleo)
+            const headGeo = new THREE.SphereGeometry(4, 12, 12);
+            const headMat = new THREE.MeshBasicMaterial({ color: color });
+            const head = new THREE.Mesh(headGeo, headMat);
+            this.mesh.add(head);
+
+            // Brilho da Cabeça
+            const glowGeo = new THREE.SphereGeometry(8, 12, 12);
+            const glowMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+            this.mesh.add(new THREE.Mesh(glowGeo, glowMat));
+
+            // Calda Melhorada (Sprites em cascata para parecer fumaça/luz)
+            this.trailGroup = new THREE.Group();
+            this.scene.add(this.trailGroup);
+            
+            for (let i = 0; i < this.trailLength; i++) {
+                const sGeo = new THREE.SphereGeometry(3, 8, 8);
+                const sMat = new THREE.MeshBasicMaterial({ 
+                    color: color, 
+                    transparent: true, 
+                    opacity: 0, // Inicia invisível
+                    blending: THREE.AdditiveBlending 
+                });
+                const dot = new THREE.Mesh(sGeo, sMat);
+                this.trailGroup.add(dot);
+            }
+        }
+
+        reset() {
+            this.mesh.position.set((Math.random() - 0.5) * 7000, (Math.random() - 0.5) * 3000, (Math.random() - 0.5) * 7000);
+            this.velocity = new THREE.Vector3((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 40);
+            this.history = [];
+            for(let i=0; i<this.trailLength; i++) this.history.push(this.mesh.position.clone());
+        }
+
+        update() {
+            this.mesh.position.add(this.velocity);
+            this.history.unshift(this.mesh.position.clone());
+            if (this.history.length > this.trailLength) this.history.pop();
+
+            // Atualiza cada pedaço da calda
+            this.trailGroup.children.forEach((dot, i) => {
+                const pos = this.history[i] || this.mesh.position;
+                dot.position.copy(pos);
+                // Efeito de afinamento e fade out
+                const scale = 1 - (i / this.trailLength);
+                dot.scale.set(scale, scale, scale);
+                dot.material.opacity = (1 - (i / this.trailLength)) * 0.5;
+            });
+
+            if (this.mesh.position.length() > 8000) this.reset();
+        }
+
+        destroy() {
+            this.scene.remove(this.mesh);
+            this.scene.remove(this.trailGroup);
+        }
+    }
+
+    // --- LÓGICA DE UI E NAVEGAÇÃO ---
+    const startBtn = document.getElementById('startBtn');
+    const exitGalaxyBtn = document.getElementById('exitGalaxyBtn');
+    const audio = document.getElementById('audio');
+
+    // Iniciar Universo
+    startBtn.onclick = function() {
+        document.getElementById('intro').style.display = 'none';
+        document.getElementById('galaxy-canvas').style.display = 'block';
+        setTimeout(() => { document.getElementById('galaxy-canvas').style.opacity = '1'; }, 50);
+        document.getElementById('musicPlayer').style.display = 'flex';
+        document.getElementById('nextPageBtn').style.display = 'block';
+        exitGalaxyBtn.style.display = 'block';
+        
+        if (!isInitialized) {
+            initThree();
+            isInitialized = true;
+        }
+        audio.play().catch(() => {});
+    };
+
+    // Retornar da Galáxia para o Início
+    exitGalaxyBtn.onclick = function() {
+        // Para música
+        audio.pause();
+        audio.currentTime = 0;
+        document.getElementById('playBtn').innerText = '⏸';
+
+        // Esconde Galáxia e UI
+        document.getElementById('galaxy-canvas').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('galaxy-canvas').style.display = 'none';
+            document.getElementById('intro').style.display = 'flex';
+            document.getElementById('musicPlayer').style.display = 'none';
+            document.getElementById('nextPageBtn').style.display = 'none';
+            exitGalaxyBtn.style.display = 'none';
+        }, 800);
+    };
+
+    // --- CÓDIGO THREE.JS ---
+    let scene, camera, renderer, composer, isInitialized = false;
+    let cores = [], pGroups = [], dustClouds = [], comets = [];
+    let purpleGlowHalo = null;
+
+    function initThree() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 25000);
+        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('galaxy-canvas'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(0, 500, 1500);
+
+        const renderScene = new THREE.RenderPass(scene, camera);
+        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        const setupGalaxy = (pos, color, phrases, img = null) => {
+            const g = new THREE.Group(); g.position.copy(pos); scene.add(g);
+            let coreMat = img ? new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(img) }) : new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const core = new THREE.Mesh(new THREE.SphereGeometry(25, 32, 32), coreMat);
+            g.add(core); cores.push(core);
+
+            if (!img) {
+                const glow = new THREE.Mesh(new THREE.SphereGeometry(32, 32, 32), new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+                g.add(glow); purpleGlowHalo = glow;
+            }
+
+            const rings = new THREE.Group();
+            [{r:45, t:0.3}, {r:65, t:0.2}].forEach(d => {
+                const r = new THREE.Mesh(new THREE.TorusGeometry(d.r, d.t, 16, 100), new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.6 }));
+                r.rotation.x = Math.PI/2; rings.add(r);
+            });
+            g.add(rings);
+
+            const dust = createDust(new THREE.Color(color)); g.add(dust); dustClouds.push(dust);
+
+            const pg = new THREE.Group(); g.add(pg); pGroups.push(pg);
+            for(let i=0; i<30; i++) {
+                const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: createText(phrases[i%phrases.length], color), transparent: true, blending: THREE.AdditiveBlending }));
+                const a = Math.random()*Math.PI*2; const rd = 150+Math.random()*150;
+                spr.position.set(Math.cos(a)*rd, (Math.random()-0.5)*60, Math.sin(a)*rd);
+                spr.scale.set(60, 8, 1); pg.add(spr);
+            }
+        };
+
+        setupGalaxy(new THREE.Vector3(500, 0, -250), "#aa00ff", ["Meu amor", "Te amo", "2 anos de namoro", "Perfeito", "Lindona"]); 
+        setupGalaxy(new THREE.Vector3(-500, -50, 150), "#00f2ff", ["Sodade", "Baco", "Girassóis de Van Gogh", "Bluesman","flamingos", "fetiche"], 'Foto.Jpg'); 
+        setupGalaxy(new THREE.Vector3(0, -300, -700), "#ffff00", ["Miau", "Gatinho", "Vida"], 'Gato.jpg'); 
+
+        const sGeo = new THREE.BufferGeometry(); const sPos = new Float32Array(6000*3);
+        for(let i=0; i<6000*3; i++) sPos[i] = (Math.random()-0.5)*15000;
+        sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ size: 2, color: 0xffffff, transparent: true, opacity: 0.8 })));
+
+        for (let i = 0; i < 8; i++) comets.push(new NeonComet(scene));
+
+        function animate() {
+            requestAnimationFrame(animate);
+            cores.forEach(c => c.rotation.y += 0.01);
+            pGroups.forEach((g, i) => g.rotation.y += (i%2==0 ? 0.002 : -0.002));
+            dustClouds.forEach(d => d.rotation.y += 0.001);
+            comets.forEach(c => c.update());
+            if (purpleGlowHalo) {
+                const s = 1.0 + Math.sin(Date.now() * 0.005) * 0.1;
+                purpleGlowHalo.scale.set(s,s,s);
+            }
+            controls.update();
+            composer.render();
+        }
+        animate();
+    }
+
+    function createDust(col) {
+        const geo = new THREE.BufferGeometry(); const pos = new Float32Array(800 * 3);
+        for (let i = 0; i < 800; i++) {
+            const a = Math.random()*Math.PI*2; const r = 70 + 280*Math.pow(Math.random(), 0.5);
+            pos[i*3] = Math.cos(a)*r; pos[i*3+1] = (Math.random()-0.5)*120; pos[i*3+2] = Math.sin(a)*r;
+        }
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        return new THREE.Points(geo, new THREE.PointsMaterial({ color: col, size: 2.5, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending }));
+    }
+
+    function createText(t, col) {
+        const c = document.createElement('canvas'); c.width = 512; c.height = 64;
+        const g = c.getContext('2d'); g.font = `bold 36px sans-serif`; g.textAlign = 'center';
+        g.shadowColor = col; g.shadowBlur = 20; g.fillStyle = '#fff'; g.fillText(t, 256, 32);
+        return new THREE.CanvasTexture(c);
+    }
+
+    // --- CARREGAMENTO ---
+    let prg = 0; const bar = document.getElementById('loader-bar');
+    const ldr = setInterval(() => {
+        prg += Math.random() * 15;
+        if (prg >= 100) { prg = 100; clearInterval(ldr); 
+            document.getElementById('status-text').innerText = "Prontinho Seja bem vindo!";
+            document.getElementById('loader-container').style.display = 'none';
+            startBtn.style.display = 'block'; setTimeout(() => startBtn.style.opacity = '1', 50);
+        }
+        bar.style.width = prg + '%';
+    }, 150);
+
+    // Navegação Mensagem
+    document.getElementById('nextPageBtn').onclick = () => {
+        document.getElementById('galaxy-canvas').style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById('galaxy-canvas').style.display = "none";
+            document.getElementById('messagePage').style.display = "flex";
+            setTimeout(() => document.getElementById('messagePage').style.opacity = "1", 50);
+        }, 800);
+    };
+    document.getElementById('backToGalaxyBtn').onclick = () => {
+        document.getElementById('messagePage').style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById('messagePage').style.display = "none";
+            document.getElementById('galaxy-canvas').style.display = "block";
+            setTimeout(() => document.getElementById('galaxy-canvas').style.opacity = "1", 50);
+        }, 800);
+    };
+    document.getElementById('playBtn').onclick = function() {
+        if (audio.paused) { audio.play(); this.innerText = '⏸'; }
+        else { audio.pause(); this.innerText = '▶'; }
+    };
+})();
+</script>
+</body>
+</html>
