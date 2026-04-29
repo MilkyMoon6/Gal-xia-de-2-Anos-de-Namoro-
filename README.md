@@ -1,1 +1,0 @@
-# Gal-xia-de-2-anos
